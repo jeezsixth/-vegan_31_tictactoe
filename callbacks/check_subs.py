@@ -55,13 +55,21 @@ async def check_subs(call: CallbackQuery, bot: Bot, state: FSMContext):
         # Обновляем значение check_subs_count
         await state.update_data(check_subs_count=check_subs_count + 1)
     else:
-        await bot.send_message(
-            chat_id=call.message.chat.id,
-            text="Вы успешно подписались ✅\nОтправьте свой игровой id",
-        )
         await bot.delete_message(call.message.chat.id, call.message.message_id)
+        msg_cap = """
+Отлично, осталось последнее задание 🔥
 
-        await state.set_state(GameId.game_id)
+Чтобы забрать 360 гемов , пригласи 5 друзей по вашей ссылке , ссылку можно посмотреть нажав кнопку -  статистика 📊
+"""
+
+        file = FSInputFile("start_image.jpg")
+        await bot.send_photo(
+            chat_id=call.message.chat.id,
+            photo=file,
+            caption=msg_cap,
+            parse_mode="html",
+            reply_markup=await get_main_menu(),
+        )
 
 
 @router.message(GameId.game_id)

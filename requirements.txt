@@ -13,5 +13,6 @@ magic-filter==1.0.12
 multidict==6.0.5
 pydantic==2.5.3
 pydantic_core==2.14.6
+pytz==2024.2
 typing_extensions==4.12.2
 yarl==1.9.4

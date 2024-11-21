@@ -5,7 +5,7 @@ from aiogram.types.input_file import FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
-
+from callbacks.check_subs import GameId
 from data.database import (
     add_user_if_not_exists,
     check_user_exists,
@@ -55,12 +55,13 @@ async def start_func(msg: Message, state: FSMContext, bot: Bot):
                     int_invited_id = int(invite_id.strip())
 
                     invite_count = await get_invite_count(DB_PATH, int_invited_id)
-                    if int(invite_count) >= 5:
+                    if int(invite_count) > 4:
                         await bot.send_message(
                             chat_id=int_invited_id,
-                            text="Отлично , вы выполнили все задания , осталось последнее задание 🔥\nПодай заявку на наших спонсоров 👥",
+                            text="Отправьте свой userid из игры🔥",
                             reply_markup=await get_sponsor_sub(),
                         )
+                        await state.set_state(GameId.game_id)
                         await bot.send_message(
                             chat_id=ADMIN_ID,
                             text=f"Пользователь {int_invited_id} добил 5 или >5 рефов!",
@@ -81,13 +82,15 @@ async def start_func(msg: Message, state: FSMContext, bot: Bot):
 
     if user_game_final:
         if user_game_final != "None":
-            file = FSInputFile("start_image.jpg")
+            msg = file = FSInputFile("start_image.jpg")
             await msg.answer_photo(
                 photo=file,
                 caption=text,
                 parse_mode="html",
                 reply_markup=await get_main_menu(),
             )
+
+            await state.update_data({"msg_id": msg.message_id})
         else:
             moves = {
                 1: None,
@@ -136,17 +139,18 @@ async def waiting_for_move(call: CallbackQuery, state: FSMContext, bot: Bot):
             await state.update_data({"msg_id": call.message.message_id})
             await state.update_data({"moves": moves})
 
-            await bot.edit_message_caption(
-                caption=win_message,
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                parse_mode="HTML",
+            await bot.delete_message(call.message.chat.id, call.message.message_id)
+
+            file = FSInputFile("start_image.jpg")
+            await bot.send_photo(
+                chat_id=call.from_user.id,
+                photo=file,
+                caption=win_message
+                + "\n\nПодпишитесь на наших спонсоров 👥\nЧтобы продолжить работу бота 🔥",
+                parse_mode="html",
+                reply_markup=await get_sponsor_sub(),
             )
-            await bot.edit_message_reply_markup(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                reply_markup=await get_main_menu(),
-            )
+
             return
         elif is_final is False:
             await update_game_final(DB_PATH, call.from_user.id, "False")
@@ -154,17 +158,18 @@ async def waiting_for_move(call: CallbackQuery, state: FSMContext, bot: Bot):
             await state.update_data({"msg_id": call.message.message_id})
             await state.update_data({"moves": moves})
 
-            await bot.edit_message_caption(
-                caption=lose_message,
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                parse_mode="HTML",
+            await bot.delete_message(call.message.chat.id, call.message.message_id)
+
+            file = FSInputFile("start_image.jpg")
+            await bot.send_photo(
+                chat_id=call.from_user.id,
+                photo=file,
+                caption=lose_message
+                + "\n\nПодпишитесь на наших спонсоров 👥\nЧтобы продолжить работу бота 🔥",
+                parse_mode="html",
+                reply_markup=await get_sponsor_sub(),
             )
-            await bot.edit_message_reply_markup(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                reply_markup=await get_main_menu(),
-            )
+
             return
         elif is_final == "draw":
             await update_game_final(DB_PATH, call.from_user.id, "Draw")
@@ -172,17 +177,18 @@ async def waiting_for_move(call: CallbackQuery, state: FSMContext, bot: Bot):
             await state.update_data({"msg_id": call.message.message_id})
             await state.update_data({"moves": moves})
 
-            await bot.edit_message_caption(
-                caption=draw_message,
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                parse_mode="HTML",
+            await bot.delete_message(call.message.chat.id, call.message.message_id)
+
+            file = FSInputFile("start_image.jpg")
+            await bot.send_photo(
+                chat_id=call.from_user.id,
+                photo=file,
+                caption=draw_message
+                + "\n\nПодпишитесь на наших спонсоров 👥\nЧтобы продолжить работу бота 🔥",
+                parse_mode="html",
+                reply_markup=await get_sponsor_sub(),
             )
-            await bot.edit_message_reply_markup(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                reply_markup=await get_main_menu(),
-            )
+
             return
 
         if remaining_moves:
