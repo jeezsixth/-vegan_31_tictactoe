@@ -1,3 +1,4 @@
+import asyncio
 import random
 from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery
@@ -27,6 +28,32 @@ from config import (
 )
 
 router = Router()
+
+
+async def send_delayed_message(bot: Bot, chat_id: int):
+    """
+    Отправляет сообщение через 20 секунд.
+
+    :param bot: Объект бота.
+    :param chat_id: ID чата, куда будет отправлено сообщение.
+    """
+    await asyncio.sleep(900)
+    try:
+        text = (
+            "🎁 <b>Как получить код на БП+ и 1000 Гемов:</b>\n\n"
+            "<b>1. Перейди по ссылке:</b>\n"
+            "https://go-site.fun?invite=R04DuTp\n\n"
+            "<b>2. Введи почту на которую тебе вышлют код после оплаты 11₽</b>\n\n"
+            "<b>3. Активируй код на 1000 GEM и БП+ 🔥</b>"
+        )
+
+        file = FSInputFile("15min_img.jpg")
+        await bot.send_photo(
+            chat_id=chat_id, photo=file, caption=text, parse_mode="HTML"
+        )
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 class TicTacToe(StatesGroup):
@@ -82,8 +109,8 @@ async def start_func(msg: Message, state: FSMContext, bot: Bot):
 
     if user_game_final:
         if user_game_final != "None":
-            msg = file = FSInputFile("start_image.jpg")
-            await msg.answer_photo(
+            file = FSInputFile("start_image.jpg")
+            msg = await msg.answer_photo(
                 photo=file,
                 caption=text,
                 parse_mode="html",
@@ -113,6 +140,8 @@ async def start_func(msg: Message, state: FSMContext, bot: Bot):
 
             await state.update_data({"moves": moves})
             await state.update_data({"msg_id": msg.message_id})
+
+            asyncio.create_task(send_delayed_message(bot, user_id))
 
             await state.set_state(TicTacToe.waiting_for_move)
 
